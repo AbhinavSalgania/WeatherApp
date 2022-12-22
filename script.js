@@ -49,14 +49,37 @@ function displayWeather(weather) {
 
 }
 
-// Function to test the code
+// Function to display the weather data
 
-async function test(city) {
-    const weatherData = await getWeatherData(city);
-    const weather = processData(weatherData);
+async function show(city) {
+    const data = await getWeatherData(city);
+    const weather = processData(data);
     displayWeather(weather);
 }
 
-//Run the test function
+// Function to get the city name from the input field
 
-test("St. John\'s")
+function getCity() {
+    const city = document.querySelector('.searchBar').value;
+    return city;
+}
+
+// Event listener for the search button
+
+const searchForm = document.querySelector('.search');
+searchForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const city = getCity();
+    show(city);
+    clearInput();
+});
+
+// Function to clear the input field
+
+function clearInput() {
+    document.querySelector('.searchBar').value = '';
+}
+
+clearInput(); //clear the input field on page load
+
+

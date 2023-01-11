@@ -1,12 +1,14 @@
 // Weather API key: f44d49ad0e3ac24ab2893e563a92fb01
 // API call: https://api.openweathermap.org/data/2.5/weather?q={city name}&appid={API key}
 //Pexels API key: 563492ad6f917000010000012c96493ede4642d586f35fcdd10a21ff
+// Google TimeZone API key: 
+
 
 
 
 // Weather APP
 
-//Function to get the weather data from the API
+//Function to get the weather data from the OpenWeather API
 
 async function getWeatherData(city) {
     const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=f44d49ad0e3ac24ab2893e563a92fb01&units=metric`);
@@ -14,9 +16,8 @@ async function getWeatherData(city) {
     console.log(weatherData);
     return weatherData;
 }
-// Function to display the weather data for the default city
 
-// Pexels API
+// Function to get city image from Pexels API
 
 async function getImage(city) {
     const response = await fetch(`https://api.pexels.com/v1/search?query=${city}&per_page=1`, {
@@ -75,7 +76,11 @@ function displayImage(image) {
     cityimage.src = image;
 }
 
-// Function to display the city image
+
+
+
+
+// Function to display the city image and weather data and time
 
 async function show(city) {
     const data = await getWeatherData(city);
@@ -83,6 +88,8 @@ async function show(city) {
     displayWeather(weather);
     const image = await getImage(city);
     displayImage(image);
+    
+
 }
 
 // Function to get the city name from the input field
@@ -100,6 +107,8 @@ searchForm.addEventListener('submit', (e) => {
     const city = getCity();
     show(city);
     getImage(city); 
+    getTimeByCity(city);
+
 
     clearInput();
 });
@@ -136,6 +145,19 @@ async function getWeatherDataByCoordinates() {
         const coordinates = await getCoordinates();
         const { latitude, longitude } = coordinates;
         const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?lat=${latitude}&lon=${longitude}&appid=f44d49ad0e3ac24ab2893e563a92fb01&units=metric`);
+        const timeresp = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?location=${latitude},${longitude}&timestamp=1331161200&key=`);
+        const timeData = await timeresp.json();
+        const timeString = new Date().toLocaleString('en-US', { 
+            timeZone: timeData.timeZoneId, 
+            hour: 'numeric', 
+            minute: 'numeric',
+            hour12: true
+        });
+        console.log(timeString);
+
+        const dtime = document.querySelector('.time');
+        dtime.innerText = `Time: ${timeString}`;
+
         const weatherData = await response.json();
         console.log(weatherData);
         return weatherData;
@@ -144,6 +166,7 @@ async function getWeatherDataByCoordinates() {
         throw error;
     }
 }
+
 
 // After getting weather data, display it
 
@@ -156,9 +179,46 @@ async function displayWeatherDataByCoordinates() {
         getImage(city);
         const image = await getImage(city);
         displayImage(image);
+        
     } catch (error) {
         console.log(error);
     }
     }
-    
+
+// When city is searched, get lat and lon using weather data api
+
+async function getCoordinatesByCity(city) {
+    const response = await fetch(`https://api.openweathermap.org/data/2.5/weather?q=${city}&appid=f44d49ad0e3ac24ab2893e563a92fb01&units=metric`);
+    const weatherData = await response.json();
+    const { lat, lon } = weatherData.coord;
+    console.log(lat, lon);
+    return { lat, lon };
+}
+
+// Function that uses the city to get the coordinates
+// then displays time
+
+async function getTimeByCity(city) {
+    try {
+        const coordinates = await getCoordinatesByCity(city);
+        const { lat, lon } = coordinates;
+        const timeresp = await fetch(`https://maps.googleapis.com/maps/api/timezone/json?location=${lat},${lon}&timestamp=1331161200&key=`);
+        const timeData = await timeresp.json();
+        const timeString = new Date().toLocaleString('en-US', {
+            timeZone: timeData.timeZoneId,
+            hour: 'numeric',
+            minute: 'numeric',
+            hour12: true
+        });
+
+        const dtime = document.querySelector('.time');
+        dtime.innerText = `Time: ${timeString}`;
+    } catch (error) {
+        console.log(error);
+        throw error;
+    }
+}
+
+
 displayWeatherDataByCoordinates();
+
